@@ -1,14 +1,53 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using Newtonsoft.Json;
+using Microservices.Domain.Models;
+using System.Text;
 
 namespace Microservices.API.Controllers
 {
-    [ApiController]
     [Route("[controller]")]
-    public class BaseController : Controller
+    public class BaseController : ControllerBase
     {
-        public IActionResult Index()
+        public readonly ConnectionFactory _factory;
+        public const string QUEUE_NAME = "";
+
+        public BaseController()
         {
-            return View();
+            _factory = new ConnectionFactory
+            {
+                HostName = "localhost"
+            };
         }
+
+        [HttpPost]
+        public IActionResult PostMessage([FromBody] BaseModel message)
+        {
+            using (var connection = _factory.CreateConnection())
+            {
+                using (var channel = connection.CreateModel())
+                {
+                    channel.QueueDeclare(
+                        queue: QUEUE_NAME,
+                        durable: false,
+                        exclusive: false,
+                        autoDelete: false,  
+                        arguments: null);
+
+                    var stringfiedMessage = JsonConvert.SerializeObject(message);
+                    var bytesMessage = Encoding.UTF8.GetBytes(stringfiedMessage);
+
+                    channel.BasicPublish(
+                        exchange: "",
+                        routingKey: QUEUE_NAME,
+                        basicProperties: null,
+                        body: bytesMessage);
+                }
+            }
+
+            return Accepted();
+        }
+
+
     }
 }
