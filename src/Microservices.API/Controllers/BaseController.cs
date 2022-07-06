@@ -3,6 +3,8 @@ using RabbitMQ.Client;
 using Newtonsoft.Json;
 using Microservices.Domain.Models;
 using System.Text;
+using Microservices.Domain.Interfaces;
+using Microservices.Application;
 
 namespace Microservices.API.Controllers
 {
@@ -12,12 +14,16 @@ namespace Microservices.API.Controllers
         public readonly ConnectionFactory _factory;
         public const string QUEUE_NAME = "";
 
-        public BaseController()
+        public BaseService<BaseModel> _service;
+
+        public BaseController(BaseService<BaseModel> service)
         {
             _factory = new ConnectionFactory
             {
                 HostName = "localhost"
             };
+
+            _service = service;
         }
 
         [HttpPost]

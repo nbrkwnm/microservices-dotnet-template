@@ -3,6 +3,8 @@ using Microservices.Data;
 using Microsoft.Extensions.Configuration;
 using Microservices.API.Consumers;
 using Microservices.API.Configurations;
+using System.Reflection;
+using Microservices.Application;
 
 namespace Microservices.API
 {
@@ -15,6 +17,23 @@ namespace Microservices.API
             // Add services to the container.
             builder.Services.AddHostedService<BaseProcessMessageConsumer>();
             builder.Services.Configure<RabbitMqConfiguration>(builder.Configuration.GetSection("RabbitMqConfig"));
+            
+            Assembly services_assembly = typeof(BaseService<>).GetTypeInfo().Assembly;
+            var service_types = services_assembly.ExportedTypes
+                .Where(t => t.Name.EndsWith("Service") && !t.Name.StartsWith("Base") && !t.IsInterface)
+                .Select(t => new
+                {
+                    Implementacao = t,
+                    Interfaces = t.GetInterfaces()
+                }).ToList();
+            foreach (var relation in service_types)
+            {
+                foreach (var Interface in relation.Interfaces)
+                {
+                    builder.Services.AddScoped(Interface, relation.Implementacao);
+                }
+            }
+
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("cnString")));
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
