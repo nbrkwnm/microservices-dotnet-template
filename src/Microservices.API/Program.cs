@@ -14,7 +14,7 @@ namespace Microservices.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Adiciona configuração do RabbitMQ.Client.
             builder.Services.AddHostedService<BaseProcessMessageConsumer>();
             builder.Services.Configure<RabbitMqConfiguration>(builder.Configuration.GetSection("RabbitMqConfig"));
             
@@ -34,7 +34,11 @@ namespace Microservices.API
                 }
             }
 
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("cnString")));
+            // Adiciona contexto de banco de dados com configuração de conexão do SQL Server
+            builder.Services.AddDbContext<AppDbContext>(
+                options => options.UseSqlServer(builder.Configuration.GetConnectionString("cnString"))
+                );
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

@@ -12,7 +12,7 @@ namespace Microservices.API.Controllers
     public class BaseController : ControllerBase
     {
         public readonly ConnectionFactory _factory;
-        public const string QUEUE_NAME = "";
+        public const string QUEUE_NAME = "#QUEUE_NAME#";
 
         public BaseService<BaseModel> _service;
 
